@@ -1,5 +1,5 @@
 # Stained-Glass
-This project seeks to create images resembling stained glass using photos
+This project seeks to create images resembling stained glass from photos
 
 ## Stained Glass Image Filter
 
@@ -11,7 +11,7 @@ This project seeks to create images resembling stained glass using photos. It wi
 ## Background
 I have previously developed a program for randomly generated triangles for image generation, and noticed that it had a nice effect for images, shown in figure 1. Since the points were generated randomly, a large number of them were required to provide recognizable images.
 
-[A mosaic of a bird made using 1000 points. The large details of the bird can be made out, but are not particularly sharp or vivid.](/docs/bird-1000-points.png)
+![A mosaic of a bird made using 1000 points. The large details of the bird can be made out, but are not particularly sharp or vivid.](/docs/bird-1000-points.png)
 Figure 1: Mosaic of a bird generated with 1000 points
 
 
