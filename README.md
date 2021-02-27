@@ -35,7 +35,7 @@ The secondary goals are:
   * the possible geometries
 
 ## Schedule
-The schedule will be as follows:
+The tentative schedule is as follows:
 * February 8th
   * select libraries
   * import/export images
