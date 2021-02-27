@@ -31,7 +31,12 @@ class StainGlassGUI():
         """
         Implements the canvas for the Application
         """
-        return QPushButton('Canvas')
+        self.image = QImage('img/Geometry.png')
+        label = QLabel()
+        label.setPixmap(QPixmap(self.image))
+
+        return label
+        #QPushButton('Canvas')
 
     def __interface(self):
         """
