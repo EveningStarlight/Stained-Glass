@@ -34,62 +34,6 @@ class Mosaic():
         self.canvasUpdate(mosaic)
 
 
-    def drawMoments(self, mosaic=None):
-        if mosaic is None:
-            mosaic = self.img
-        threshold = self.settings["K"]*10
-        rng.seed(12345)
-
-        src_gray = cv.cvtColor(mosaic, cv.COLOR_BGR2GRAY)
-        src_gray = cv.blur(src_gray, (3,3))
-
-        canny_output = cv.Canny(src_gray, threshold, threshold * 2)
-        contours, _ = cv.findContours(canny_output, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-
-        # Get the moments
-        mu = [None]*len(contours)
-        for i in range(len(contours)):
-            mu[i] = cv.moments(contours[i])
-
-        drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
-
-        for i in range(len(contours)):
-            areaThreshold = self.settings["Area"]*5
-            if cv.contourArea(contours[i]) > areaThreshold:
-                color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
-                cv.drawContours(drawing, contours, i, color, -1)
-
-        return drawing
-
-
-    def drawKMeans(self, mosaic=None):
-        if mosaic is None:
-            mosaic = self.img
-        K = self.settings["K"]
-
-        # reshape the image to a 2D array of pixels and 3 color values (RGB)
-        pixel_values = mosaic.reshape((-1, 3))
-        # convert to float
-        pixel_values = np.float32(pixel_values)
-
-        criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.2)
-        _, labels, (centers) = cv.kmeans(pixel_values, K, None, criteria, 10, cv.KMEANS_RANDOM_CENTERS)
-
-        # convert back to 8 bit values
-        centers = np.uint8(centers)
-
-        # flatten the labels array
-        labels = labels.flatten()
-
-        # convert all pixels to the color of the centroids
-        segmented_image = centers[labels.flatten()]
-
-        # reshape back to the original image dimension
-        mosaic = segmented_image.reshape(mosaic.shape)
-
-        return mosaic
-
-
     def drawKMeansContours(self):
         settingHash = hash(frozenset(self.settings.items()))
         if settingHash in self.mosaics:
@@ -146,39 +90,4 @@ class Mosaic():
 
 
         self.mosaics[settingHash] = drawing
-        return drawing
-
-
-    def drawFast(self, mosaic=None):
-        if mosaic is None:
-            mosaic = self.img
-
-        # Initiate FAST object with default values
-        fast = cv.FastFeatureDetector_create()
-        # find and draw the keypoints
-        kp = fast.detect(mosaic, None)
-        mosaic = cv.drawKeypoints(mosaic, kp, None, color=(255,0,0))
-        return mosaic
-
-
-    def drawContours(self, mosaic=None):
-        if mosaic is None:
-            mosaic = self.img
-
-        threshold = self.settings["K"]*10
-        rng.seed(12345)
-
-        src_gray = cv.cvtColor(mosaic, cv.COLOR_BGR2GRAY)
-        src_gray = cv.blur(src_gray, (3,3))
-
-        # Detect edges using Canny
-        canny_output = cv.Canny(src_gray, threshold, threshold * 2)
-        # Find contours
-        contours, hierarchy = cv.findContours(canny_output, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-        # Draw contours
-        drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
-        for i in range(len(contours)):
-            color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
-            cv.drawContours(drawing, contours, i, color, 2, cv.LINE_8, hierarchy, 0)
-
         return drawing
