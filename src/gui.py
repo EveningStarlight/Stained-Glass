@@ -26,30 +26,16 @@ class StainGlassGUI(QMainWindow):
 
         self.show()
 
+
     def __initMenu(self):
         mainMenu = self.menuBar()
         mainMenu.setNativeMenuBar(False)
         fileMenu = mainMenu.addMenu(' &File')
-        editMenu = mainMenu.addMenu(' &Edit')
-        viewMenu = mainMenu.addMenu(' &View')
 
-        openImageButton = QAction('Open...', self)
-        openImageButton.setShortcut('Ctrl+O')
-        openImageButton.setStatusTip('Opens a new image')
-        openImageButton.triggered.connect(self.__openImage)
-        fileMenu.addAction(openImageButton)
-
-        closeTabButton = QAction(QIcon('exit24.png'), 'Close', self)
-        closeTabButton.setShortcut('Ctrl+W')
-        closeTabButton.setStatusTip('Close active window')
-        closeTabButton.triggered.connect(self.close)
-        fileMenu.addAction(closeTabButton)
-
-        exitButton = QAction(QIcon('exit24.png'), 'Exit StainGlass', self)
-        exitButton.setShortcut('Ctrl+Q')
-        exitButton.setStatusTip('Exit application')
-        exitButton.triggered.connect(self.close)
-        fileMenu.addAction(exitButton)
+        fileMenu.addAction(self.__initMenuItem(name='Open...', shortcut='Ctrl+O', status='Opens a new image', function=self.__openImage))
+        fileMenu.addAction(self.__initMenuItem(name='Save...', shortcut='Ctrl+S', status='Saves the current image', function=self.__saveImage))
+        fileMenu.addAction(self.__initMenuItem(name='Close', shortcut='Ctrl+W', status='Close active window', function=self.close))
+        fileMenu.addAction(self.__initMenuItem(name='Exit StainGlass', shortcut='Ctrl+Q', status='Exit application', function=self.close))
 
 
     def __initFrame(self):
@@ -89,63 +75,23 @@ class StainGlassGUI(QMainWindow):
     def __initTabGrouping(self):
         """
         Implements the first tab
-        usage is TODO
         """
         tab = QWidget()
         layout = QGridLayout()
 
-        button1 = QPushButton('Button 1')
-        button1.setToolTip("Test Button")
-        button1.clicked.connect(self.__testButton)
-        layout.addWidget(button1,0,0)
-
-        layout.addWidget(QPushButton('Button 2'), 1,0)
-
-        vboxK = QVBoxLayout()
-
-        labelK = QLabel(str(self.mosaic.get("K")), self)
-        labelK.setAlignment(Qt.AlignCenter)
-        labelK.setMinimumWidth(40)
-        labelK.setMaximumHeight(40)
-
-        sliderK = QSlider(Qt.Horizontal)
-        sliderK.setFocusPolicy(Qt.StrongFocus)
-        sliderK.setTickPosition(QSlider.TicksBothSides)
-        sliderK.setRange(1,20)
-        sliderK.setSingleStep(1)
-        sliderK.setTickInterval(5)
-        sliderK.setValue(self.mosaic.get("K"))
-        sliderK.valueChanged.connect(lambda value: self.mosaic.set("K", value))
-        sliderK.valueChanged.connect(lambda value: labelK.setText(str(value)))
-
-        vboxK.addWidget(labelK)
-        vboxK.addWidget(sliderK)
+        vboxK = self.__initSlider(setting="K", preLabel="Colour Groups: ", postLabel="", min=1, max=10, step=1, tick=2)
         layout.addLayout(vboxK, 2,0, alignment=Qt.AlignTop)
 
-        vboxA = QVBoxLayout()
+        vboxK = self.__initSlider(setting="Area", preLabel="Minimum Area: ", postLabel="%", min=0, max=20, step=1, tick=5)
+        layout.addLayout(vboxK, 3,0, alignment=Qt.AlignTop)
 
-        labelA = QLabel(str(self.mosaic.get("Area")), self)
-        labelA.setAlignment(Qt.AlignCenter)
-        labelA.setMinimumWidth(40)
-        labelA.setMaximumHeight(40)
-
-        sliderA = QSlider(Qt.Horizontal)
-        sliderA.setFocusPolicy(Qt.StrongFocus)
-        sliderA.setTickPosition(QSlider.TicksBothSides)
-        sliderA.setRange(0,20)
-        sliderA.setSingleStep(1)
-        sliderA.setTickInterval(5)
-        sliderA.setValue(self.mosaic.get("Area"))
-        sliderA.valueChanged.connect(lambda value: self.mosaic.set("Area", value))
-        sliderA.valueChanged.connect(lambda value: labelA.setText(str(value)))
-
-        vboxA.addWidget(labelA)
-        vboxA.addWidget(sliderA)
-        layout.addLayout(vboxA, 3,0, alignment=Qt.AlignTop)
+        vboxThickness = self.__initSlider(setting="LineThickness", preLabel="Line Thickness: ", postLabel="", min=0, max=10, step=1, tick=2)
+        layout.addLayout(vboxThickness, 4,0, alignment=Qt.AlignTop)
 
         tab.setLayout(layout)
 
         return tab
+
 
     def __initTabColour(self):
         """
@@ -164,6 +110,7 @@ class StainGlassGUI(QMainWindow):
     def __testButton(self):
         print("test")
 
+
     def __openImage(self):
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "./img", "Images (*.png *.xpm *.jpg)", options=options)
@@ -171,11 +118,56 @@ class StainGlassGUI(QMainWindow):
             img = cv.imread(fileName)
             self.mosaic.setImage(img)
 
+
+    def __saveImage(self):
+        try:
+            options = QFileDialog.Options()
+            fileName, _ = QFileDialog.getSaveFileName(self,"Save File", "./img/"+"mosaic.png", "Images (*.png *.xpm *.jpg)", options=options)
+            if fileName != "":
+                image = self.mosaic.mosaics[self.mosaic.getSettingHash()]
+                cv.imwrite(fileName, image)
+        except Exception as e:
+            buttonReply = QMessageBox.question(self, 'Save Error', "File could not be saved:\n" +str(e), QMessageBox.Ok)
+
+
     def updateCanvas(self, img):
         img = cv.resize(img, self.canvas.size)
         cv.cvtColor(img, cv.COLOR_BGR2RGB, img)
         img = QImage(img.data, img.shape[1], img.shape[0], QImage.Format_RGB888)
         self.canvas.setPixmap(QPixmap.fromImage(img))
+
+
+    def __initMenuItem(self, name, shortcut, status, function):
+        menuItem = QAction(name, self)
+        menuItem.setShortcut(shortcut)
+        menuItem.setStatusTip(status)
+        menuItem.triggered.connect(function)
+
+        return menuItem
+
+
+    def __initSlider(self, setting, preLabel, postLabel, min, max, step, tick):
+        vbox = QVBoxLayout()
+
+        label = QLabel(preLabel + str(self.mosaic.get(setting)) + postLabel, self)
+        label.setAlignment(Qt.AlignCenter)
+        label.setMinimumWidth(80)
+        label.setMaximumHeight(40)
+
+        slider = QSlider(Qt.Horizontal)
+        slider.setFocusPolicy(Qt.StrongFocus)
+        slider.setTickPosition(QSlider.TicksBothSides)
+        slider.setRange(min, max)
+        slider.setSingleStep(step)
+        slider.setTickInterval(tick)
+        slider.setValue(self.mosaic.get(setting))
+        slider.valueChanged.connect(lambda value: self.mosaic.set(setting, value))
+        slider.valueChanged.connect(lambda value: label.setText(preLabel + str(value)))
+
+        vbox.addWidget(label)
+        vbox.addWidget(slider)
+
+        return vbox
 
 
 if __name__ == "__main__":
