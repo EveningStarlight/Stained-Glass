@@ -78,15 +78,27 @@ class StainGlassGUI(QMainWindow):
         """
         tab = QWidget()
         layout = QGridLayout()
+        yPos = 0
 
-        vboxK = self.__initSlider(setting="K", preLabel="Colour Groups: ", postLabel="", min=1, max=10, step=1, tick=2)
-        layout.addLayout(vboxK, 2,0, alignment=Qt.AlignTop)
+        vboxK = self.__initSlider(setting="K", preLabel="Colour Groups: ", min=1, max=10, tick=2)
+        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        yPos+=1
 
-        vboxK = self.__initSlider(setting="Area", preLabel="Minimum Area: ", postLabel="%", min=0, max=20, step=1, tick=5)
-        layout.addLayout(vboxK, 3,0, alignment=Qt.AlignTop)
+        vboxK = self.__initSlider(setting="BlurSize", preLabel="Blur Size: ", min=0, max=8, tick=1, valFunction=(lambda v: 2*v+1), posFunction=(lambda v: int((v-1)/2)))
+        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        yPos+=1
 
-        vboxThickness = self.__initSlider(setting="LineThickness", preLabel="Line Thickness: ", postLabel="", min=0, max=10, step=1, tick=2)
-        layout.addLayout(vboxThickness, 4,0, alignment=Qt.AlignTop)
+        vboxK = self.__initSlider(setting="MinArea", preLabel="Minimum Area: ", postLabel="%", min=0, max=20, tick=5, valFunction=(lambda v: v/10), posFunction=(lambda v: int(v*10)))
+        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        yPos+=1
+
+        vboxK = self.__initSlider(setting="MaxArea", preLabel="Minimum Area: ", postLabel="%", min=0, max=100, tick=10)
+        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        yPos+=1
+
+        vboxThickness = self.__initSlider(setting="LineThickness", preLabel="Line Thickness: ", min=0, max=10, tick=2)
+        layout.addLayout(vboxThickness, yPos,0, alignment=Qt.AlignTop)
+        yPos+=1
 
         tab.setLayout(layout)
 
@@ -99,9 +111,20 @@ class StainGlassGUI(QMainWindow):
         usage is TODO
         """
         tab = QWidget()
-        layout = QVBoxLayout()
+        layout = QGridLayout()
+        yPos = 0
+
+        vboxK = self.__initSlider(setting="Saturation", preLabel="Saturation: ", min=0, max=20, tick=2, valFunction=(lambda v: v/10), posFunction=(lambda v: int(v*10)))
+        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        yPos+=1
+
+        vboxK = self.__initSlider(setting="Lightness", preLabel="Lightness: ", min=0, max=20, tick=2, valFunction=(lambda v: v/10), posFunction=(lambda v: int(v*10)))
+        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        yPos+=1
+
         layout.addWidget(QCheckBox("General Option 1"))
         layout.addWidget(QCheckBox("General Option 2"))
+
         tab.setLayout(layout)
 
         return tab
@@ -146,7 +169,7 @@ class StainGlassGUI(QMainWindow):
         return menuItem
 
 
-    def __initSlider(self, setting, preLabel, postLabel, min, max, step, tick):
+    def __initSlider(self, setting, preLabel="", postLabel="", min=0, max=10, tick=2, valFunction=(lambda v: v), posFunction=(lambda v: v)):
         vbox = QVBoxLayout()
 
         label = QLabel(preLabel + str(self.mosaic.get(setting)) + postLabel, self)
@@ -158,11 +181,10 @@ class StainGlassGUI(QMainWindow):
         slider.setFocusPolicy(Qt.StrongFocus)
         slider.setTickPosition(QSlider.TicksBothSides)
         slider.setRange(min, max)
-        slider.setSingleStep(step)
         slider.setTickInterval(tick)
-        slider.setValue(self.mosaic.get(setting))
-        slider.valueChanged.connect(lambda value: self.mosaic.set(setting, value))
-        slider.valueChanged.connect(lambda value: label.setText(preLabel + str(value)))
+        slider.setValue(posFunction(self.mosaic.get(setting)))
+        slider.valueChanged.connect(lambda value: self.mosaic.set(setting, valFunction(value)))
+        slider.valueChanged.connect(lambda value: label.setText(preLabel + str(valFunction(value)) + postLabel))
 
         vbox.addWidget(label)
         vbox.addWidget(slider)
