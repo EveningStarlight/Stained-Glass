@@ -9,8 +9,12 @@ class Mosaic():
         self.canvasUpdate = canvasUpdate
         self.settings = {
             "K": 4,
-            "Area": 2,
-            "LineThickness": 2
+            "BlurSize": 9,
+            "MinArea": 0.2,
+            "MaxArea": 100,
+            "LineThickness": 2,
+            "Saturation": 1.0,
+            "Lightness": 1.0
         }
         self.mosaics = {}
         self.contours = {}
@@ -54,7 +58,7 @@ class Mosaic():
 
 
     def getContourHash(self):
-        contourSettings = ('K')
+        contourSettings = ('K', 'BlurSize')
         contourDic = {k:self.settings[k] for k in contourSettings if k in self.settings}
         contourHash = hash(frozenset(contourDic.items()))
 
@@ -63,7 +67,7 @@ class Mosaic():
 
     def getKMeansContours(self):
         mosaic = self.img
-        mosaic = cv.blur(mosaic, (5,5))
+        mosaic = cv.blur(mosaic, (self.settings["BlurSize"],self.settings["BlurSize"]))
 
         # reshape the image to a 2D array of pixels and 3 color values (RGB)
         pixel_values = mosaic.reshape((-1, 3))
@@ -97,26 +101,43 @@ class Mosaic():
         return fullContours
 
 
-    def drawKMeansContours(self, contours):
+    def drawKMeansContours(self, allContours):
         mosaic = self.img
-        areaThreshold = int(self.settings["Area"]/1000 * self.img.shape[0]*self.img.shape[1])
-        imgHSV = cv.cvtColor(mosaic, cv.COLOR_BGR2HSV)
+        minArea = int(self.settings["MinArea"]/100 * self.img.shape[0]*self.img.shape[1])
+        maxArea = int(self.settings["MaxArea"]/100 * self.img.shape[0]*self.img.shape[1])
+        imgHSV = cv.cvtColor(mosaic, cv.COLOR_RGB2HSV)
+
+        contours = []
+        i = 0
+        while i<len(allContours):
+            cnt = allContours[i]
+            area = cv.contourArea(cnt)
+
+            if area > maxArea:
+                pass
+            elif area > minArea:
+                contours.append(cnt)
+
+            i+=1
 
         # Fills the contours with their representative colour
         drawing = np.zeros((mosaic.shape[0], mosaic.shape[1], 3), dtype=np.uint8)
         for cnt in contours:
-            if cv.contourArea(cnt) > areaThreshold:
-                color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
+            color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
 
-                mask = np.zeros((mosaic.shape[0], mosaic.shape[1]), np.uint8)
-                cv.drawContours(mask, cnt, -1, 255, -1)
-                mean = cv.mean(self.img, mask=mask)
+            mask = np.zeros((mosaic.shape[0], mosaic.shape[1]), np.uint8)
+            cv.drawContours(mask, cnt, -1, 255, -1)
+            mean = np.array(cv.mean(imgHSV, mask=mask))
 
-                cv.drawContours(drawing, [cnt], 0, mean, -2, cv.LINE_8)
+            mean[1] = min(mean[1]*self.settings["Saturation"], 255)
+            mean[2] = min(mean[2]*self.settings["Lightness"], 255)
+
+            cv.drawContours(drawing, [cnt], 0, mean, -2, cv.LINE_8)
+
+        drawing = cv.cvtColor(drawing, cv.COLOR_HSV2RGB)
 
         # Draws the outline of the contours
         for cnt in contours:
-            if cv.contourArea(cnt) > areaThreshold:
-                cv.drawContours(drawing, [cnt], 0, (0,0,0), self.settings["LineThickness"], cv.LINE_8)
+            cv.drawContours(drawing, [cnt], 0, (0,0,0), self.settings["LineThickness"], cv.LINE_8)
 
         return drawing
