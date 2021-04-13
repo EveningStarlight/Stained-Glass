@@ -22,7 +22,7 @@ class StainGlassGUI(QMainWindow):
         self.__initMenu()
         self.__initFrame()
 
-        self.mosaic.setImage(cv.imread('img/bird.png'))
+        self.mosaic.setImage(cv.imread('img/landscape.png'))
 
         self.show()
 
@@ -80,7 +80,11 @@ class StainGlassGUI(QMainWindow):
         layout = QGridLayout()
         yPos = 0
 
-        vboxK = self.__initSlider(setting="K", preLabel="Colour Groups: ", min=1, max=10, tick=2)
+        vboxK = self.__initSlider(setting="K", preLabel="Colour Groups: ", min=1, max=6, tick=1)
+        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        yPos+=1
+
+        vboxK = self.__initSlider(setting="Grid", preLabel="Grid Size: ", min=1, max=4, tick=1)
         layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
         yPos+=1
 
@@ -92,11 +96,11 @@ class StainGlassGUI(QMainWindow):
         layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
         yPos+=1
 
-        vboxK = self.__initSlider(setting="MaxArea", preLabel="Minimum Area: ", postLabel="%", min=0, max=100, tick=10)
+        vboxK = self.__initSlider(setting="MaxArea", preLabel="Minimum Area: ", postLabel="%", min=10, max=100, tick=10)
         layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
         yPos+=1
 
-        vboxThickness = self.__initSlider(setting="LineThickness", preLabel="Line Thickness: ", min=0, max=10, tick=2)
+        vboxThickness = self.__initSlider(setting="LineThickness", preLabel="Line Thickness: ", min=1, max=10, tick=2)
         layout.addLayout(vboxThickness, yPos,0, alignment=Qt.AlignTop)
         yPos+=1
 
@@ -114,12 +118,23 @@ class StainGlassGUI(QMainWindow):
         layout = QGridLayout()
         yPos = 0
 
-        vboxK = self.__initSlider(setting="Saturation", preLabel="Saturation: ", min=0, max=20, tick=2, valFunction=(lambda v: v/10), posFunction=(lambda v: int(v*10)))
-        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        vbox = QVBoxLayout()
+        label = QLabel('Color Scheme: ', self)
+        CB = QComboBox()
+        CB.addItems(self.mosaic.colorSchemes)
+        CB.currentIndexChanged.connect(lambda value: self.mosaic.set('colorScheme',value))
+
+        vbox.addWidget(label)
+        vbox.addWidget(CB)
+        layout.addLayout(vbox, yPos, 0, alignment=Qt.AlignTop)
         yPos+=1
 
-        vboxK = self.__initSlider(setting="Lightness", preLabel="Lightness: ", min=0, max=20, tick=2, valFunction=(lambda v: v/10), posFunction=(lambda v: int(v*10)))
-        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
+        vbox = self.__initSlider(setting="Saturation", preLabel="Saturation: ", min=0, max=20, tick=2, valFunction=(lambda v: v/10), posFunction=(lambda v: int(v*10)))
+        layout.addLayout(vbox, yPos, 0, alignment=Qt.AlignTop)
+        yPos+=1
+
+        vbox = self.__initSlider(setting="Lightness", preLabel="Lightness: ", min=0, max=20, tick=2, valFunction=(lambda v: v/10), posFunction=(lambda v: int(v*10)))
+        layout.addLayout(vbox, yPos, 0, alignment=Qt.AlignTop)
         yPos+=1
 
         layout.addWidget(QCheckBox("General Option 1"))
