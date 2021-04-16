@@ -96,10 +96,6 @@ class StainGlassGUI(QMainWindow):
         layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
         yPos+=1
 
-        vboxK = self.__initSlider(setting="MaxArea", preLabel="Minimum Area: ", postLabel="%", min=10, max=100, tick=10)
-        layout.addLayout(vboxK, yPos,0, alignment=Qt.AlignTop)
-        yPos+=1
-
         vboxThickness = self.__initSlider(setting="LineThickness", preLabel="Line Thickness: ", min=1, max=10, tick=2)
         layout.addLayout(vboxThickness, yPos,0, alignment=Qt.AlignTop)
         yPos+=1
@@ -137,16 +133,9 @@ class StainGlassGUI(QMainWindow):
         layout.addLayout(vbox, yPos, 0, alignment=Qt.AlignTop)
         yPos+=1
 
-        layout.addWidget(QCheckBox("General Option 1"))
-        layout.addWidget(QCheckBox("General Option 2"))
-
         tab.setLayout(layout)
 
         return tab
-
-
-    def __testButton(self):
-        print("test")
 
 
     def __openImage(self):

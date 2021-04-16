@@ -12,7 +12,6 @@ class Mosaic():
             "Grid": 2,
             "BlurSize": 9,
             "MinArea": 0.2,
-            "MaxArea": 100,
             "LineThickness": 2,
             "Saturation": 1.0,
             "Lightness": 1.0,
@@ -118,7 +117,6 @@ class Mosaic():
         mosaic = self.img
         squares = self.settings["Grid"] * self.settings["Grid"]
         minArea = int(self.settings["MinArea"]/100 * self.img.shape[0]*self.img.shape[1] / squares)
-        maxArea = int(self.settings["MaxArea"]/100 * self.img.shape[0]*self.img.shape[1])
 
         contours = []
         i = 0
@@ -126,9 +124,7 @@ class Mosaic():
             cnt = allContours[i]
             area = cv.contourArea(cnt)
 
-            if area > maxArea:
-                pass
-            elif area > minArea:
+            if area > minArea:
                 contours.append(cnt)
 
             i+=1
