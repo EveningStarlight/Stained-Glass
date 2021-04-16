@@ -70,8 +70,8 @@ class Mosaic():
     def getKMeansContours(self, images):
         fullContours = []
         size = self.settings['Grid']
-        length = int(self.img.shape[0]/size)
-        height = int(self.img.shape[1]/size)
+        height = int(self.img.shape[0]/size)
+        length = int(self.img.shape[1]/size)
 
         for row in range(size):
             for col in range(size):
@@ -173,7 +173,7 @@ class Mosaic():
         # Draws the outline of the contours
         for cnt in contours:
             cv.drawContours(drawing, [cnt], 0, (20,20,20), self.settings["LineThickness"], cv.LINE_8)
-        cv.rectangle(drawing, (0,0), (self.img.shape[0],self.img.shape[1]), (20,20,20), self.settings["LineThickness"], cv.LINE_8)
+        cv.rectangle(drawing, (0,0), (self.img.shape[1],self.img.shape[0]), (20,20,20), self.settings["LineThickness"], cv.LINE_8)
 
 
         return drawing
